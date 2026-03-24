@@ -200,6 +200,7 @@
     ],
     "mac": {
       "notarize": false,
+      "icon": "assets/icon.icns",
       "target": {
         "target": "default",
         "arch": [

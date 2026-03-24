@@ -1,31 +1,18 @@
 import './App.css';
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-  type ReactNode,
-  type WheelEvent as ReactWheelEvent,
-} from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type WheelEvent as ReactWheelEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { AiOutlineFolderOpen } from 'react-icons/ai';
 import { IoChevronDown } from 'react-icons/io5';
-import {
-  VscLayoutSidebarLeft,
-  VscSearch,
-  VscSettingsGear,
-} from 'react-icons/vsc';
+import { VscLayoutSidebarLeft, VscSearch, VscSettingsGear } from 'react-icons/vsc';
 import { LuPanelLeft, LuPanelRight } from 'react-icons/lu';
 import { FileTree, type FileTreeHandle } from './components/FileTree';
 import ExploreToolbar from './components/ExploreToolbar';
-import EditorPanelToolbar, {
-  type EditorViewMode,
-} from './components/EditorPanelToolbar';
+import EditorPanelToolbar, { type EditorViewMode } from './components/EditorPanelToolbar';
 import MarkdownEditor, { type EditorHandle } from './components/MarkdownEditor';
 import MarkdownPreview from './components/MarkdownPreview';
 import NodeDetailModal from './components/NodeDetailModal';
 import RenameNodeModal from './components/RenameNodeModal';
+import WelcomePage from './components/WelcomePage';
 import type { MoveNodeParams } from './components/FileTree/types';
 import { ProjectStore, type ProjectStoreSnapshot } from './store/projectStore';
 import { getParentKey } from './components/FileTree/utils';
@@ -37,6 +24,7 @@ const SHOW_FILE_TREE_KEY = 'markdown-management-tool:showFileTree';
 const SHOW_MARKDOWN_EDITOR_KEY = 'markdown-management-tool:showMarkdownEditor';
 const EXTERNAL_OPEN_APP_KEY = 'markdown-management-tool:externalOpenApp';
 const SIDE_BAR_WIDTH_KEY = 'markdown-management-tool:sidebarWidthPx';
+const HAS_USED_APP_KEY = 'markdown-management-tool:hasUsedApp';
 const DEFAULT_SIDE_BAR_WIDTH_PX = 320;
 const MIN_SIDE_BAR_WIDTH_PX = 180;
 const MAX_SIDE_BAR_WIDTH_PX = 720;
@@ -45,7 +33,7 @@ const SCROLLBAR_FADE_OUT_MS = 360;
 /** 页签 hover 浮层：离开页签后短暂保留，便于移入浮层阅读长备注 */
 const TAB_HOVER_HIDE_MS = 100;
 
-const WELCOME_EDITOR_TEXT = `欢迎使用
+function safeReadLocalStorage(key: string): string | null { = `欢迎使用
 
 在左侧文件树中点击 Markdown 文件以打开标签页并开始编辑。
 
@@ -173,6 +161,8 @@ export default function App() {
   const fileBuffersRef = useRef(fileBuffers);
   fileBuffersRef.current = fileBuffers;
   const fileLoadInFlightRef = useRef<Set<string>>(new Set());
+
+  const [hasSeenWelcome, setHasSeenWelcome] = useState<boolean | null>(null);
 
   const [exploreTreeFilter, setExploreTreeFilter] = useState('');
   const [focusPulseNodeId, setFocusPulseNodeId] = useState<string | null>(null);
@@ -394,6 +384,20 @@ export default function App() {
     }
   };
 
+  const handleWelcomeOpenProject = async () => {
+    setHasSeenWelcome(false);
+    await selectRootAndLoad();
+    if (storeSnapshot?.rootPath) {
+      safeWriteLocalStorage(HAS_USED_APP_KEY, '1');
+    }
+  };
+
+  const handleWelcomeCreateProject = () => {
+    setHasSeenWelcome(false);
+    handleOpenCreateProjectDialog();
+    safeWriteLocalStorage(HAS_USED_APP_KEY, '1');
+  };
+
   const handleOpenCreateProjectDialog = () => {
     setCreateProjectRootPath('');
     setCreateProjectIconPath('');
@@ -447,14 +451,20 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const lastRootPath = safeReadLocalStorage(ROOT_PATH_LOCAL_STORAGE_KEY);
+      const hasUsed = safeReadLocalStorage(HAS_USED_APP_KEY);
       if (cancelled) return;
-      if (lastRootPath) {
-        await scanAndInitStore(lastRootPath);
-        return;
+
+      if (hasUsed === '1') {
+        // User has used the app before, try to restore last project
+        const lastRootPath = safeReadLocalStorage(ROOT_PATH_LOCAL_STORAGE_KEY);
+        if (lastRootPath) {
+          await scanAndInitStore(lastRootPath);
+        }
+        // Show the main UI even without a project (user can open/create one)
+      } else {
+        // First time: show welcome page
+        setHasSeenWelcome(true);
       }
-      // First launch: ask user to pick a project root.
-      await selectRootAndLoad();
     })();
     return () => {
       cancelled = true;
@@ -1243,7 +1253,14 @@ export default function App() {
   };
 
   let treeBody: ReactNode;
-  if (isLoadingTree) {
+  if (hasSeenWelcome && !storeSnapshot && !isLoadingTree) {
+    treeBody = (
+      <WelcomePage
+        onOpenProject={handleWelcomeOpenProject}
+        onCreateProject={handleWelcomeCreateProject}
+      />
+    );
+  } else if (isLoadingTree) {
     treeBody = <div className="emptyHint">加载中...</div>;
   } else if (loadTreeError) {
     treeBody = (

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Typora Explore - 基于 Electron 的 Markdown 笔记与项目管理桌面应用">
+  <title>Typora Explore - 优雅的 Markdown 项目管理工具</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <!-- Hero Section -->
+  <header class="hero">
+    <nav class="nav">
+      <div class="nav-logo">
+        <svg class="logo-icon" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="24" fill="#1a1a2e"/>
+          <path d="M32 32h64v64H32z" fill="#16213e"/>
+          <path d="M40 44h48M40 56h48M40 68h32M40 80h40" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="96" cy="88" r="16" fill="#0f3460" stroke="#e94560" stroke-width="3"/>
+          <path d="M92 88l4 4 8-8" stroke="#e94560" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Typora Explore</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">功能特性</a>
+        <a href="#tech">技术栈</a>
+        <a href="#install">安装</a>
+        <a href="https://github.com/Reagan1947/Typora-Explore" class="nav-btn" target="_blank">GitHub</a>
+      </div>
+    </nav>
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>Markdown 项目管理<br><span class="gradient-text">从未如此优雅</span></h1>
+        <p class="hero-desc">基于 Electron 的桌面应用，在本地文件夹上以文件树组织 Markdown 文档，使用 CodeMirror 6 编辑器实时预览，让你的笔记管理更加高效。</p>
+        <div class="hero-actions">
+          <a href="#install" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            立即下载
+          </a>
+          <a href="https://github.com/Reagan1947/Typora-Explore" class="btn btn-secondary" target="_blank">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            源代码
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="window-frame">
+          <div class="window-header">
+            <div class="window-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <div class="window-title">Typora Explore</div>
+          </div>
+          <div class="window-content">
+            <div class="sidebar">
+              <div class="folder">
+                <svg viewBox="0 0 24 24" fill="#fcd34d"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                我的项目
+              </div>
+              <div class="file-item active">
+                <svg viewBox="0 0 24 24" fill="#60a5fa"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+                README.md
+              </div>
+              <div class="file-item">
+                <svg viewBox="0 0 24 24" fill="#60a5fa"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+                笔记.md
+              </div>
+              <div class="file-item">
+                <svg viewBox="0 0 24 24" fill="#34d399"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                文档
+              </div>
+            </div>
+            <div class="editor">
+              <div class="editor-tabs">
+                <span class="tab active">README.md</span>
+              </div>
+              <div class="editor-content">
+                <div class="line-number">1</div>
+                <div class="code"><span class="comment"># Welcome to Typora Explore</span></div>
+                <div class="line-number">2</div>
+                <div class="code"></div>
+                <div class="line-number">3</div>
+                <div class="code"><span class="keyword">##</span> <span class="string">优雅的 Markdown 编辑</span></div>
+                <div class="line-number">4</div>
+                <div class="code"></div>
+                <div class="line-number">5</div>
+                <div class="code"><span class="tag">-</span> 实时预览</div>
+                <div class="line-number">6</div>
+                <div class="code"><span class="tag">-</span> 文件树管理</div>
+                <div class="line-number">7</div>
+                <div class="code"><span class="tag">-</span> 拖拽排序</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="section-header">
+      <h2>强大功能，<span class="gradient-text">得心应手</span></h2>
+      <p>精心设计的每一个细节，让 Markdown 创作更加高效</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+          </svg>
+        </div>
+        <h3>项目文件树</h3>
+        <p>以熟悉的文件树结构组织管理你的 Markdown 文档，支持展开折叠、多标签编辑，侧栏宽度可调。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </div>
+        <h3>实时预览</h3>
+        <p>内置 CodeMirror 6 编辑器与 Marked 渲染引擎，编辑与预览无缝切换，支持行号显示。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <polyline points="5,9 2,12 5,15"/>
+            <polyline points="9,5 12,2 15,5"/>
+            <polyline points="15,19 12,22 9,19"/>
+            <polyline points="19,9 22,12 19,15"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <line x1="12" y1="2" x2="12" y2="22"/>
+          </svg>
+        </div>
+        <h3>拖拽排序</h3>
+        <p>使用 @dnd-kit 实现直观的拖拽操作，轻松调整文件与文件夹的顺序和层级结构。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
+        <h3>文件操作</h3>
+        <p>支持新建、重命名、删除、复制/粘贴文件与文件夹，一切操作都在主进程中安全执行。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </div>
+        <h3>元数据管理</h3>
+        <p>为节点设置备注说明、颜色标记等元数据，方便分类和查找你的文档。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+            <polyline points="15,3 21,3 21,9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </div>
+        <h3>外部打开</h3>
+        <p>使用系统默认应用或指定应用打开文件，与其他工具无缝协作。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack Section -->
+  <section id="tech" class="tech">
+    <div class="tech-badges">
+      <span class="badge">Electron 35</span>
+      <span class="badge">React 19</span>
+      <span class="badge">TypeScript 5.8</span>
+      <span class="badge">CodeMirror 6</span>
+      <span class="badge">Webpack 5</span>
+      <span class="badge">Sass</span>
+    </div>
+    <div class="tech-content">
+      <div class="tech-item">
+        <h4>主进程</h4>
+        <p>Node.js 环境负责目录扫描、文件监听与磁盘操作，确保安全高效的文件管理。</p>
+      </div>
+      <div class="tech-item">
+        <h4>渲染进程</h4>
+        <p>React 19 + Webpack Dev Server 实现热更新开发，实时预览编辑效果。</p>
+      </div>
+      <div class="tech-item">
+        <h4>编辑器</h4>
+        <p>CodeMirror 6 提供专业级 Markdown 编辑体验，支持语法高亮与多种编辑功能。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install Section -->
+  <section id="install" class="install">
+    <div class="section-header">
+      <h2>快速开始</h2>
+      <p>只需几步，即可开启你的 Markdown 项目管理之旅</p>
+    </div>
+    <div class="install-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>克隆项目</h3>
+          <code>git clone https://github.com/Reagan1947/Typora-Explore.git</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>安装依赖</h3>
+          <code>cd Typora-Explore && npm install</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>启动开发</h3>
+          <code>npm start</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>打包应用</h3>
+          <code>npm run package</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <svg class="footer-logo" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="128" height="128" rx="24" fill="#1a1a2e"/>
+          <path d="M32 32h64v64H32z" fill="#16213e"/>
+          <path d="M40 44h48M40 56h48M40 68h32M40 80h40" stroke="#e94560" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="96" cy="88" r="16" fill="#0f3460" stroke="#e94560" stroke-width="3"/>
+          <path d="M92 88l4 4 8-8" stroke="#e94560" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Typora Explore</span>
+      </div>
+      <p class="footer-desc">基于 Electron React Boilerplate 构建的 Markdown 笔记与项目管理应用</p>
+      <div class="footer-links">
+        <a href="https://github.com/Reagan1947/Typora-Explore" target="_blank">GitHub</a>
+        <a href="https://github.com/Reagan1947/Typora-Explore/issues" target="_blank">问题反馈</a>
+        <a href="https://github.com/Reagan1947/Typora-Explore/blob/main/LICENSE" target="_blank">MIT 许可证</a>
+      </div>
+      <p class="footer-copy">Made with passion for better note-taking</p>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+
+    // Add scroll animation
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.feature-card, .step').forEach(el => {
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
