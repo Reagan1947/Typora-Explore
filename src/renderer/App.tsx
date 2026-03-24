@@ -33,7 +33,7 @@ const SCROLLBAR_FADE_OUT_MS = 360;
 /** 页签 hover 浮层：离开页签后短暂保留，便于移入浮层阅读长备注 */
 const TAB_HOVER_HIDE_MS = 100;
 
-function safeReadLocalStorage(key: string): string | null { = `欢迎使用
+const WELCOME_EDITOR_TEXT = `欢迎使用
 
 在左侧文件树中点击 Markdown 文件以打开标签页并开始编辑。
 
@@ -1253,14 +1253,7 @@ export default function App() {
   };
 
   let treeBody: ReactNode;
-  if (hasSeenWelcome && !storeSnapshot && !isLoadingTree) {
-    treeBody = (
-      <WelcomePage
-        onOpenProject={handleWelcomeOpenProject}
-        onCreateProject={handleWelcomeCreateProject}
-      />
-    );
-  } else if (isLoadingTree) {
+  if (isLoadingTree) {
     treeBody = <div className="emptyHint">加载中...</div>;
   } else if (loadTreeError) {
     treeBody = (
@@ -2132,6 +2125,13 @@ export default function App() {
             document.body,
           )
         : null}
+
+      {hasSeenWelcome && !storeSnapshot && !isLoadingTree ? (
+        <WelcomePage
+          onOpenProject={handleWelcomeOpenProject}
+          onCreateProject={handleWelcomeCreateProject}
+        />
+      ) : null}
     </div>
   );
 }
