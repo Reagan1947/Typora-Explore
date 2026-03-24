@@ -1,4 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -200,7 +208,16 @@ function findTreeRowEl(nodeId: string): HTMLElement | null {
   );
 }
 
-export default function FileTree(props: FileTreeProps) {
+const MAX_TREE_HISTORY_SIZE = 50;
+
+export interface FileTreeHandle {
+  undo: () => void;
+}
+
+export default forwardRef<FileTreeHandle, FileTreeProps>(function FileTree(
+  props,
+  ref,
+) {
   const {
     nodes,
     orderByParentId,
@@ -262,6 +279,33 @@ export default function FileTree(props: FileTreeProps) {
   const dragStartOrderByParentRef = useRef<Record<string, string[]>>({});
   const autoExpandTimerRef = useRef<number | null>(null);
   const autoExpandTargetRef = useRef<string | null>(null);
+
+  /** 文件树操作历史栈（仅记录 orderByParentId） */
+  const treeHistoryRef = useRef<{ orderByParentId: Record<string, string[]> }[]>(
+    [],
+  );
+
+  /** 每次拖拽开始时压入当前 orderByParentId 快照 */
+  const pushTreeHistory = useCallback(() => {
+    const stack = treeHistoryRef.current;
+    if (stack.length >= MAX_TREE_HISTORY_SIZE) {
+      stack.shift();
+    }
+    stack.push({ orderByParentId: { ...orderByParentId } });
+  }, [orderByParentId]);
+
+  /** 执行一次撤销 */
+  const handleTreeUndo = useCallback(() => {
+    const stack = treeHistoryRef.current;
+    if (stack.length === 0) return;
+    const prev = stack.pop();
+    if (!prev) return;
+    onOrderChange(prev.orderByParentId);
+  }, [onOrderChange]);
+
+  useImperativeHandle(ref, () => ({ undo: handleTreeUndo }), [
+    handleTreeUndo,
+  ]);
 
   const clearAutoExpandTimer = React.useCallback(() => {
     if (autoExpandTimerRef.current != null) {
@@ -494,6 +538,7 @@ export default function FileTree(props: FileTreeProps) {
       collisionDetection={collisionDetection}
       onDragStart={(event) => {
         clearAutoExpandTimer();
+        pushTreeHistory();
         const data = findActiveData(event.active);
         setDragActiveId(data?.nodeId ?? null);
         setDropIndicator(null);
@@ -832,4 +877,4 @@ export default function FileTree(props: FileTreeProps) {
       </DragOverlay>
     </DndContext>
   );
-}
+});

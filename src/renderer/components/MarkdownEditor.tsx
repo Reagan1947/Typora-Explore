@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import {
   autocompletion,
   closeBrackets,
   closeBracketsKeymap,
   completionKeymap,
 } from '@codemirror/autocomplete';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap, undo } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 import {
   bracketMatching,
@@ -232,7 +232,12 @@ export type MarkdownEditorProps = {
   className?: string;
 };
 
-function MarkdownEditor(props: MarkdownEditorProps) {
+export interface EditorHandle {
+  undo: () => void;
+}
+
+const MarkdownEditor = forwardRef<EditorHandle, MarkdownEditorProps>(
+  function MarkdownEditor(props, ref) {
   const {
     value,
     readOnly: readOnlyProp,
@@ -253,6 +258,13 @@ function MarkdownEditor(props: MarkdownEditorProps) {
   onChangeRef.current = onChange;
   const onFocusRef = useRef(onFocus);
   onFocusRef.current = onFocus;
+
+  useImperativeHandle(ref, () => ({
+    undo: () => {
+      if (!viewRef.current) return;
+      undo(viewRef.current);
+    },
+  }));
 
   useEffect(() => {
     const host = hostRef.current;
@@ -340,15 +352,6 @@ function MarkdownEditor(props: MarkdownEditorProps) {
   }, [value]);
 
   return <div ref={hostRef} className={className} />;
-}
-
-MarkdownEditor.defaultProps = {
-  readOnly: false,
-  showLineNumbers: true,
-  onChange: undefined,
-  onSave: undefined,
-  onFocus: undefined,
-  className: undefined,
-};
+});
 
 export default MarkdownEditor;

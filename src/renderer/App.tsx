@@ -12,17 +12,17 @@ import { createPortal } from 'react-dom';
 import { AiOutlineFolderOpen } from 'react-icons/ai';
 import { IoChevronDown } from 'react-icons/io5';
 import {
-  VscEdit,
   VscLayoutSidebarLeft,
   VscSearch,
   VscSettingsGear,
 } from 'react-icons/vsc';
-import { FileTree } from './components/FileTree';
+import { LuPanelLeft, LuPanelRight } from 'react-icons/lu';
+import { FileTree, type FileTreeHandle } from './components/FileTree';
 import ExploreToolbar from './components/ExploreToolbar';
 import EditorPanelToolbar, {
   type EditorViewMode,
 } from './components/EditorPanelToolbar';
-import MarkdownEditor from './components/MarkdownEditor';
+import MarkdownEditor, { type EditorHandle } from './components/MarkdownEditor';
 import MarkdownPreview from './components/MarkdownPreview';
 import NodeDetailModal from './components/NodeDetailModal';
 import RenameNodeModal from './components/RenameNodeModal';
@@ -237,6 +237,9 @@ export default function App() {
     startX: number;
     startW: number;
   } | null>(null);
+
+  const fileTreeRef = useRef<FileTreeHandle | null>(null);
+  const editorRef = useRef<EditorHandle | null>(null);
 
   const commitSnapshot = () => {
     const s = storeRef.current?.getSnapshot() ?? null;
@@ -511,6 +514,23 @@ export default function App() {
     window.addEventListener('resize', onWinResize, { passive: true });
     return () => window.removeEventListener('resize', onWinResize);
   }, []);
+
+  /** 全局 Cmd+Z / Ctrl+Z 路由：根据焦点区域分发到对应组件的撤销 */
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
+      const modifier = isMac ? e.metaKey : e.ctrlKey;
+      if (!modifier || e.key.toLowerCase() !== 'z') return;
+      e.preventDefault();
+      if (uiPaneFocus === 'tree') {
+        fileTreeRef.current?.undo();
+      } else {
+        editorRef.current?.undo();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [uiPaneFocus]);
 
   useEffect(() => {
     const scopeSelector = [
@@ -1282,6 +1302,7 @@ export default function App() {
           setStoreSnapshot(store.getSnapshot());
           pendingMoveRef.current = null;
         }}
+        ref={fileTreeRef}
       />
     );
   } else {
@@ -1361,7 +1382,7 @@ export default function App() {
               });
             }}
           >
-            <VscLayoutSidebarLeft size={16} />
+            <LuPanelLeft size={16} />
           </button>
           <button
             type="button"
@@ -1387,7 +1408,7 @@ export default function App() {
               });
             }}
           >
-            <VscEdit size={16} />
+            <LuPanelRight size={16} />
           </button>
           <button
             type="button"
@@ -1600,6 +1621,7 @@ export default function App() {
                       : handleSaveActiveFile
                   }
                   onFocus={() => setUiPaneFocus('editor')}
+                  ref={editorRef}
                 />
               </div>
             ) : null}

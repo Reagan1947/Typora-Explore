@@ -73,6 +73,9 @@ export type FileTreeProps = {
 
   /** 右键菜单（备注与标记等） */
   onNodeContextMenu?: (nodeId: string, clientX: number, clientY: number) => void;
+
+  /** 外部触发文件树撤销（由 App 按焦点路由 Cmd+Z/Ctrl+Z） */
+  onTreeUndo?: () => void;
 };
 
 export type ParentKey = string;
