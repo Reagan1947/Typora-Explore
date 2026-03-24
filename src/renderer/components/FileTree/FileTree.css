@@ -1,0 +1,68 @@
+.treeItem {
+  position: relative;
+}
+
+.ftInsideZone {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(74, 136, 199, 0);
+  background: rgba(74, 136, 199, 0);
+}
+
+.ftDropInside .ftInsideZone {
+  border-color: rgba(74, 136, 199, 0.9);
+  background: rgba(74, 136, 199, 0.15);
+}
+
+.ftDropBefore {
+  border-color: transparent !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ftDropBefore::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: rgba(74, 136, 199, 0.98);
+  pointer-events: none;
+}
+
+.ftDropAfter {
+  border-color: transparent !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ftDropAfter::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(74, 136, 199, 0.98);
+  pointer-events: none;
+}
+
+.ftDropRejected {
+  border-color: transparent !important;
+}
+
+.ftDropRejected.ftDropBefore::before,
+.ftDropRejected.ftDropAfter::after {
+  background: rgba(255, 110, 110, 0.92);
+}
+
+.ftDropRejected.ftDropInside .ftInsideZone {
+  border-color: rgba(255, 110, 110, 0.92);
+  background: rgba(255, 110, 110, 0.2);
+}
