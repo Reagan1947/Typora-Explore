@@ -3,6 +3,73 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointer
 import { createPortal } from 'react-dom';
 import { AiOutlineFolderOpen } from 'react-icons/ai';
 import { IoChevronDown } from 'react-icons/io5';
+import {
+  IoDocumentTextOutline,
+  IoBookOutline,
+  IoFolderOutline,
+  IoBrushOutline,
+  IoCodeSlashOutline,
+  IoGameControllerOutline,
+  IoHardwareChipOutline,
+  IoHeartOutline,
+  IoLeafOutline,
+  IoMicOutline,
+  IoMusicalNotesOutline,
+  IoNewspaperOutline,
+  IoSchoolOutline,
+  IoSettingsOutline,
+  IoShieldOutline,
+  IoStarOutline,
+  IoTrophyOutline,
+  IoVideocamOutline,
+  IoWifiOutline,
+  IoRocketOutline,
+  IoFlaskOutline,
+  IoColorPaletteOutline,
+  IoCloudOutline,
+  IoBriefcaseOutline,
+  IoCameraOutline,
+  IoGlobeOutline,
+  IoHeadsetOutline,
+  IoPeopleOutline,
+  IoBulbOutline,
+  IoStar,
+  IoTimeOutline,
+  IoFolderOpenOutline,
+  IoEllipsisHorizontal,
+} from 'react-icons/io5';
+
+const ICON_OPTIONS = [
+  IoDocumentTextOutline,
+  IoBookOutline,
+  IoFolderOutline,
+  IoBrushOutline,
+  IoCodeSlashOutline,
+  IoGameControllerOutline,
+  IoHardwareChipOutline,
+  IoHeartOutline,
+  IoLeafOutline,
+  IoMicOutline,
+  IoMusicalNotesOutline,
+  IoNewspaperOutline,
+  IoSchoolOutline,
+  IoSettingsOutline,
+  IoShieldOutline,
+  IoStarOutline,
+  IoTrophyOutline,
+  IoVideocamOutline,
+  IoWifiOutline,
+  IoRocketOutline,
+  IoFlaskOutline,
+  IoColorPaletteOutline,
+  IoCloudOutline,
+  IoBriefcaseOutline,
+  IoCameraOutline,
+  IoGlobeOutline,
+  IoHeadsetOutline,
+  IoPeopleOutline,
+  IoBulbOutline,
+];
 import { VscLayoutSidebarLeft, VscSearch, VscSettingsGear } from 'react-icons/vsc';
 import { LuPanelLeft, LuPanelRight } from 'react-icons/lu';
 import { FileTree, type FileTreeHandle } from './components/FileTree';
@@ -12,19 +79,19 @@ import MarkdownEditor, { type EditorHandle } from './components/MarkdownEditor';
 import MarkdownPreview from './components/MarkdownPreview';
 import NodeDetailModal from './components/NodeDetailModal';
 import RenameNodeModal from './components/RenameNodeModal';
-import WelcomePage from './components/WelcomePage';
 import type { MoveNodeParams } from './components/FileTree/types';
 import { ProjectStore, type ProjectStoreSnapshot } from './store/projectStore';
 import { getParentKey } from './components/FileTree/utils';
 
 const ROOT_PATH_LOCAL_STORAGE_KEY = 'markdown-management-tool:lastRootPath';
+const RECENT_PROJECTS_KEY = 'markdown-management-tool:recentProjects';
+const FAVORITE_PROJECTS_KEY = 'markdown-management-tool:favoriteProjects';
 const SHOW_LINE_NUMBERS_KEY = 'markdown-management-tool:showLineNumbers';
 const EDITOR_VIEW_MODE_KEY = 'markdown-management-tool:editorViewMode';
 const SHOW_FILE_TREE_KEY = 'markdown-management-tool:showFileTree';
 const SHOW_MARKDOWN_EDITOR_KEY = 'markdown-management-tool:showMarkdownEditor';
 const EXTERNAL_OPEN_APP_KEY = 'markdown-management-tool:externalOpenApp';
 const SIDE_BAR_WIDTH_KEY = 'markdown-management-tool:sidebarWidthPx';
-const HAS_USED_APP_KEY = 'markdown-management-tool:hasUsedApp';
 const DEFAULT_SIDE_BAR_WIDTH_PX = 320;
 const MIN_SIDE_BAR_WIDTH_PX = 180;
 const MAX_SIDE_BAR_WIDTH_PX = 720;
@@ -162,8 +229,6 @@ export default function App() {
   fileBuffersRef.current = fileBuffers;
   const fileLoadInFlightRef = useRef<Set<string>>(new Set());
 
-  const [hasSeenWelcome, setHasSeenWelcome] = useState<boolean | null>(null);
-
   const [exploreTreeFilter, setExploreTreeFilter] = useState('');
   const [focusPulseNodeId, setFocusPulseNodeId] = useState<string | null>(null);
   const scrollToFileTokenRef = useRef(0);
@@ -204,10 +269,17 @@ export default function App() {
   const [createProjectDialogOpen, setCreateProjectDialogOpen] = useState(false);
   const [createProjectRootPath, setCreateProjectRootPath] = useState('');
   const [createProjectIconPath, setCreateProjectIconPath] = useState('');
+  const [createProjectIconIndex, setCreateProjectIconIndex] = useState<number | null>(null);
   const [createProjectError, setCreateProjectError] = useState<string | null>(
     null,
   );
+  const [editProjectDialogOpen, setEditProjectDialogOpen] = useState(false);
+  const [editProjectIconIndex, setEditProjectIconIndex] = useState<number | null>(null);
+  const [editProjectName, setEditProjectName] = useState('');
+  const [editProjectDescription, setEditProjectDescription] = useState('');
   const projectMenuRef = useRef<HTMLDivElement>(null);
+  const [recentProjects, setRecentProjects] = useState<Array<{ path: string; name: string; iconIndex: number | null }>>([]);
+  const [favoriteProjects, setFavoriteProjects] = useState<Array<{ path: string; name: string; iconIndex: number | null }>>([]);
   const [createNodeNameDialog, setCreateNodeNameDialog] = useState<{
     kind: 'file' | 'folder';
     parentId: string | null;
@@ -370,13 +442,33 @@ export default function App() {
 
   const selectRootAndLoad = async (): Promise<void> => {
     setLoadTreeError(null);
-    setIsLoadingTree(true);
     try {
       const selected =
         await window.electron.ipcRenderer.invoke('selectRootPath');
       if (!selected || typeof selected !== 'string') return;
-      safeWriteLocalStorage(ROOT_PATH_LOCAL_STORAGE_KEY, selected);
-      await scanAndInitStore(selected);
+      await openProjectByPath(selected);
+    } catch (e) {
+      setLoadTreeError((e as any)?.message ?? String(e));
+    }
+  };
+
+  const openProjectByPath = async (path: string): Promise<void> => {
+    setLoadTreeError(null);
+    setIsLoadingTree(true);
+    const projectName = path.split('/').pop() || path;
+    let iconIndex: number | null = null;
+    if (projectIconPath?.startsWith('icon:')) {
+      iconIndex = parseInt(projectIconPath.replace('icon:', ''), 10);
+    }
+    const newRecent = [
+      { path, name: projectName, iconIndex },
+      ...recentProjects.filter((p) => p.path !== path),
+    ].slice(0, 10);
+    setRecentProjects(newRecent);
+    safeWriteLocalStorage(RECENT_PROJECTS_KEY, JSON.stringify(newRecent));
+    safeWriteLocalStorage(ROOT_PATH_LOCAL_STORAGE_KEY, path);
+    try {
+      await scanAndInitStore(path);
     } catch (e) {
       setLoadTreeError((e as any)?.message ?? String(e));
     } finally {
@@ -384,25 +476,35 @@ export default function App() {
     }
   };
 
-  const handleWelcomeOpenProject = async () => {
-    setHasSeenWelcome(false);
-    await selectRootAndLoad();
-    if (storeSnapshot?.rootPath) {
-      safeWriteLocalStorage(HAS_USED_APP_KEY, '1');
-    }
-  };
-
-  const handleWelcomeCreateProject = () => {
-    setHasSeenWelcome(false);
-    handleOpenCreateProjectDialog();
-    safeWriteLocalStorage(HAS_USED_APP_KEY, '1');
-  };
-
   const handleOpenCreateProjectDialog = () => {
     setCreateProjectRootPath('');
     setCreateProjectIconPath('');
+    setCreateProjectIconIndex(null);
     setCreateProjectError(null);
     setCreateProjectDialogOpen(true);
+  };
+
+  const handleOpenEditProjectDialog = () => {
+    if (projectIconPath?.startsWith('icon:')) {
+      setEditProjectIconIndex(parseInt(projectIconPath.replace('icon:', ''), 10));
+    } else {
+      setEditProjectIconIndex(null);
+    }
+    const stored = safeReadLocalStorage(`project:${storeSnapshot?.rootPath}`);
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        setEditProjectName(data.name || '');
+        setEditProjectDescription(data.description || '');
+      } catch {
+        setEditProjectName('');
+        setEditProjectDescription('');
+      }
+    } else {
+      setEditProjectName(projectDisplayName);
+      setEditProjectDescription('');
+    }
+    setEditProjectDialogOpen(true);
   };
 
   const handlePickCreateProjectRoot = async () => {
@@ -430,17 +532,28 @@ export default function App() {
     setCreateProjectDialogOpen(false);
     setLoadTreeError(null);
     setIsLoadingTree(true);
+    const projectPath = createProjectRootPath.trim();
+    const projectName = projectPath.split('/').pop() || projectPath;
+    const iconIndex = createProjectIconIndex;
     try {
-      if (createProjectIconPath.trim()) {
+      if (iconIndex !== null) {
+        setProjectIconPath(`icon:${iconIndex}`);
+      } else if (createProjectIconPath.trim()) {
         setProjectIconPath(createProjectIconPath.trim());
       } else {
         setProjectIconPath(null);
       }
       safeWriteLocalStorage(
         ROOT_PATH_LOCAL_STORAGE_KEY,
-        createProjectRootPath.trim(),
+        projectPath,
       );
-      await scanAndInitStore(createProjectRootPath.trim());
+      const newRecent = [
+        { path: projectPath, name: projectName, iconIndex },
+        ...recentProjects.filter((p) => p.path !== projectPath),
+      ].slice(0, 10);
+      setRecentProjects(newRecent);
+      safeWriteLocalStorage(RECENT_PROJECTS_KEY, JSON.stringify(newRecent));
+      await scanAndInitStore(projectPath);
     } catch (e) {
       setLoadTreeError((e as any)?.message ?? String(e));
     } finally {
@@ -451,25 +564,35 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const hasUsed = safeReadLocalStorage(HAS_USED_APP_KEY);
+      const lastRootPath = safeReadLocalStorage(ROOT_PATH_LOCAL_STORAGE_KEY);
       if (cancelled) return;
-
-      if (hasUsed === '1') {
-        // User has used the app before, try to restore last project
-        const lastRootPath = safeReadLocalStorage(ROOT_PATH_LOCAL_STORAGE_KEY);
-        if (lastRootPath) {
-          await scanAndInitStore(lastRootPath);
-        }
-        // Show the main UI even without a project (user can open/create one)
-      } else {
-        // First time: show welcome page
-        setHasSeenWelcome(true);
+      if (lastRootPath) {
+        await scanAndInitStore(lastRootPath);
       }
     })();
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const recent = safeReadLocalStorage(RECENT_PROJECTS_KEY);
+    if (recent) {
+      try {
+        setRecentProjects(JSON.parse(recent));
+      } catch {
+        /* ignore parse errors */
+      }
+    }
+    const favorite = safeReadLocalStorage(FAVORITE_PROJECTS_KEY);
+    if (favorite) {
+      try {
+        setFavoriteProjects(JSON.parse(favorite));
+      } catch {
+        /* ignore parse errors */
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -1226,7 +1349,32 @@ export default function App() {
   const showPreviewColumn =
     editorViewMode === 'preview' || editorViewMode === 'split';
   const editorAreaBothHidden = !showEditorColumn && !showPreviewColumn;
-  const projectTitle = getLastPathSegment(storeSnapshot?.rootPath);
+
+  const projectDisplayName = useMemo(() => {
+    if (storeSnapshot?.rootPath) {
+      const stored = safeReadLocalStorage(`project:${storeSnapshot.rootPath}`);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          if (data.name) return data.name;
+        } catch { /* ignore */ }
+      }
+    }
+    return getLastPathSegment(storeSnapshot?.rootPath);
+  }, [storeSnapshot?.rootPath]);
+
+  const projectDescription = useMemo(() => {
+    if (storeSnapshot?.rootPath) {
+      const stored = safeReadLocalStorage(`project:${storeSnapshot.rootPath}`);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          if (data.description) return data.description;
+        } catch { /* ignore */ }
+      }
+    }
+    return '';
+  }, [storeSnapshot?.rootPath]);
 
   const globalSearchMatches = useMemo(() => {
     if (!storeSnapshot || !globalSearchQuery.trim()) return [];
@@ -1331,7 +1479,16 @@ export default function App() {
             aria-haspopup="menu"
             aria-expanded={projectMenuOpen}
           >
-            {projectIconPath ? (
+            {projectIconPath?.startsWith('icon:') ? (
+              (() => {
+                const IconComponent = ICON_OPTIONS[parseInt(projectIconPath.replace('icon:', ''), 10)];
+                return IconComponent ? (
+                  <IconComponent className="windowProjectIconGlyph" />
+                ) : (
+                  <AiOutlineFolderOpen className="windowProjectIconGlyph" />
+                );
+              })()
+            ) : projectIconPath ? (
               <img
                 src={`file://${projectIconPath}`}
                 alt=""
@@ -1341,11 +1498,43 @@ export default function App() {
             ) : (
               <AiOutlineFolderOpen className="windowProjectIconGlyph" />
             )}
-            <span className="windowProjectName">{projectTitle}</span>
+            <span className="windowProjectName">{projectDisplayName}</span>
             <IoChevronDown className="windowProjectChevron" />
           </button>
           {projectMenuOpen ? (
             <div className="windowProjectMenu" role="menu">
+              {storeSnapshot?.rootPath && (
+                <>
+                  <div className="windowProjectMenuCurrentProject">
+                    <div className="windowProjectMenuCurrentInfo">
+                      {projectIconPath?.startsWith('icon:') && ICON_OPTIONS[parseInt(projectIconPath.replace('icon:', ''), 10)] ? (
+                        (() => {
+                          const CurrentIcon = ICON_OPTIONS[parseInt(projectIconPath.replace('icon:', ''), 10)];
+                          return <CurrentIcon size={18} />;
+                        })()
+                      ) : projectIconPath ? (
+                        <img src={`file://${projectIconPath}`} alt="" className="windowProjectMenuCurrentIcon" />
+                      ) : (
+                        <AiOutlineFolderOpen size={18} />
+                      )}
+                      <span className="windowProjectMenuCurrentName">{projectDisplayName}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="windowProjectMenuEditBtn"
+                      onClick={() => {
+                        setProjectMenuOpen(false);
+                        handleOpenEditProjectDialog();
+                      }}
+                      title="编辑项目信息"
+                    >
+                      <IoEllipsisHorizontal size={16} />
+                    </button>
+                  </div>
+                  <div className="windowProjectMenuDivider" />
+                </>
+              )}
+
               <button
                 type="button"
                 className="windowProjectMenuItem"
@@ -1355,7 +1544,8 @@ export default function App() {
                   handleOpenCreateProjectDialog();
                 }}
               >
-                新建项目（选择文件夹与图标）
+                <IoFolderOpenOutline size={16} />
+                新建项目
               </button>
               <button
                 type="button"
@@ -1368,8 +1558,96 @@ export default function App() {
                   });
                 }}
               >
-                从系统磁盘打开项目
+                <IoFolderOutline size={16} />
+                打开项目
               </button>
+
+              {favoriteProjects.length > 0 && (
+                <>
+                  <div className="windowProjectMenuDivider" />
+                  <div className="windowProjectMenuSectionTitle">收藏项目</div>
+                  {favoriteProjects.map((project) => (
+                    <button
+                      key={project.path}
+                      type="button"
+                      className="windowProjectMenuItem"
+                      role="menuitem"
+                      onClick={() => {
+                        setProjectMenuOpen(false);
+                        openProjectByPath(project.path);
+                      }}
+                    >
+                      {project.iconIndex !== null && ICON_OPTIONS[project.iconIndex] ? (
+                        (() => {
+                          const ProjectIcon = ICON_OPTIONS[project.iconIndex];
+                          return <ProjectIcon size={16} />;
+                        })()
+                      ) : (
+                        <IoFolderOutline size={16} />
+                      )}
+                      <span className="windowProjectMenuItemText">{project.name}</span>
+                      <button
+                        type="button"
+                        className="windowProjectMenuItemAction"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updated = favoriteProjects.filter((p) => p.path !== project.path);
+                          setFavoriteProjects(updated);
+                          safeWriteLocalStorage(FAVORITE_PROJECTS_KEY, JSON.stringify(updated));
+                        }}
+                        title="取消收藏"
+                      >
+                        <IoStar size={14} />
+                      </button>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {recentProjects.length > 0 && (
+                <>
+                  <div className="windowProjectMenuDivider" />
+                  <div className="windowProjectMenuSectionTitle">最近打开</div>
+                  {recentProjects.map((project) => (
+                    <button
+                      key={project.path}
+                      type="button"
+                      className="windowProjectMenuItem"
+                      role="menuitem"
+                      onClick={() => {
+                        setProjectMenuOpen(false);
+                        openProjectByPath(project.path);
+                      }}
+                    >
+                      {project.iconIndex !== null && ICON_OPTIONS[project.iconIndex] ? (
+                        (() => {
+                          const ProjectIcon = ICON_OPTIONS[project.iconIndex];
+                          return <ProjectIcon size={16} />;
+                        })()
+                      ) : (
+                        <IoTimeOutline size={16} />
+                      )}
+                      <span className="windowProjectMenuItemText">{project.name}</span>
+                      <button
+                        type="button"
+                        className="windowProjectMenuItemAction"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updated = [
+                            ...favoriteProjects,
+                            project,
+                          ];
+                          setFavoriteProjects(updated);
+                          safeWriteLocalStorage(FAVORITE_PROJECTS_KEY, JSON.stringify(updated));
+                        }}
+                        title="收藏"
+                      >
+                        <IoStarOutline size={14} />
+                      </button>
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           ) : null}
         </div>
@@ -2024,28 +2302,22 @@ export default function App() {
             </div>
 
             <div className="nodeDetailModalField">
-              <label className="nodeDetailModalLabelText" htmlFor="project-icon">
-                项目图标
-              </label>
-              <input
-                id="project-icon"
-                className="nodeDetailModalInput"
-                value={createProjectIconPath}
-                readOnly
-                placeholder="可选：请选择项目图标"
-              />
-              <div className="createProjectRowActions">
-                <button
-                  type="button"
-                  className="nodeDetailModalBtn nodeDetailModalBtnSecondary"
-                  onClick={() => {
-                    handlePickCreateProjectIcon().catch(() => {
-                      /* no-op */
-                    });
-                  }}
-                >
-                  浏览图标
-                </button>
+              <label className="nodeDetailModalLabelText">项目图标</label>
+              <div className="iconPickerGrid">
+                {ICON_OPTIONS.map((IconComponent, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className={`iconPickerItem ${createProjectIconIndex === index ? 'selected' : ''}`}
+                    onClick={() => {
+                      setCreateProjectIconIndex(index);
+                      setCreateProjectIconPath('');
+                    }}
+                    title={`图标 ${index + 1}`}
+                  >
+                    <IconComponent size={20} />
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -2073,6 +2345,100 @@ export default function App() {
                 }}
               >
                 确认创建
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editProjectDialogOpen ? (
+        <div className="nodeDetailModalBackdrop" role="presentation">
+          <div className="nodeDetailModal" role="dialog" aria-modal="true">
+            <div className="nodeDetailModalTitle">编辑项目</div>
+            <div className="nodeDetailModalHint">
+              修改项目信息
+            </div>
+
+            <div className="nodeDetailModalField">
+              <label className="nodeDetailModalLabelText" htmlFor="edit-project-name">
+                项目名称
+              </label>
+              <input
+                id="edit-project-name"
+                className="nodeDetailModalInput"
+                value={editProjectName}
+                onChange={(e) => setEditProjectName(e.target.value)}
+                placeholder="输入项目名称"
+              />
+            </div>
+
+            <div className="nodeDetailModalField">
+              <label className="nodeDetailModalLabelText" htmlFor="edit-project-description">
+                项目描述
+              </label>
+              <input
+                id="edit-project-description"
+                className="nodeDetailModalInput"
+                value={editProjectDescription}
+                onChange={(e) => setEditProjectDescription(e.target.value)}
+                placeholder="输入项目描述（可选）"
+              />
+            </div>
+
+            <div className="nodeDetailModalField">
+              <label className="nodeDetailModalLabelText">项目图标</label>
+              <div className="iconPickerGrid">
+                {ICON_OPTIONS.map((IconComponent, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className={`iconPickerItem ${editProjectIconIndex === index ? 'selected' : ''}`}
+                    onClick={() => setEditProjectIconIndex(index)}
+                    title={`图标 ${index + 1}`}
+                  >
+                    <IconComponent size={20} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="nodeDetailModalActions">
+              <button
+                type="button"
+                className="nodeDetailModalBtn nodeDetailModalBtnSecondary"
+                onClick={() => setEditProjectDialogOpen(false)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="nodeDetailModalBtn nodeDetailModalBtnPrimary"
+                onClick={() => {
+                  if (editProjectIconIndex !== null) {
+                    setProjectIconPath(`icon:${editProjectIconIndex}`);
+                  } else {
+                    setProjectIconPath(null);
+                  }
+                  if (storeSnapshot?.rootPath) {
+                    const stored = safeReadLocalStorage(`project:${storeSnapshot.rootPath}`);
+                    let data = {};
+                    if (stored) {
+                      try {
+                        data = JSON.parse(stored);
+                      } catch { /* ignore */ }
+                    }
+                    const newData = {
+                      ...data,
+                      name: editProjectName.trim() || projectDisplayName,
+                      description: editProjectDescription.trim(),
+                      iconIndex: editProjectIconIndex,
+                    };
+                    safeWriteLocalStorage(`project:${storeSnapshot.rootPath}`, JSON.stringify(newData));
+                  }
+                  setEditProjectDialogOpen(false);
+                }}
+              >
+                保存
               </button>
             </div>
           </div>
@@ -2126,12 +2492,11 @@ export default function App() {
           )
         : null}
 
-      {hasSeenWelcome && !storeSnapshot && !isLoadingTree ? (
-        <WelcomePage
-          onOpenProject={handleWelcomeOpenProject}
-          onCreateProject={handleWelcomeCreateProject}
-        />
-      ) : null}
+      {storeSnapshot ? null : (
+        <div className="emptyHint" style={{ padding: '20px', textAlign: 'center' }}>
+          暂无打开的项目，请点击左上角切换项目按钮打开或创建项目
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,3 @@
-import './WelcomePage.css';
-
 interface WelcomePageProps {
   onOpenProject: () => void;
   onCreateProject: () => void;
@@ -47,91 +45,85 @@ export default function WelcomePage({ onOpenProject, onCreateProject }: WelcomeP
   return (
     <div className="welcomePage">
       <div className="welcomePageContent">
-        <div className="welcomeHeader">
-          <svg className="welcomeLogo" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="128" height="128" rx="24" fill="#1a1a2e"/>
-            <path d="M32 32h64v64H32z" fill="#16213e"/>
-            <path d="M40 44h48M40 56h48M40 68h32M40 80h40" stroke="#e94560" strokeWidth="4" strokeLinecap="round"/>
-            <circle cx="96" cy="88" r="16" fill="#0f3460" stroke="#e94560" strokeWidth="3"/>
-            <path d="M92 88l4 4 8-8" stroke="#e94560" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <h1 className="welcomeTitle">欢迎使用 Typora Explore!</h1>
-          <p className="welcomeSubtitle">
-            Typora Explore 希望能帮助您更高效的管理您的 Markdown 文档资源。
-          </p>
-        </div>
+        <div className="welcomeMain">
+          <div className="welcomeHeader">
+            <h1 className="welcomeTitle">欢迎使用 Typora Explore!</h1>
+            <p className="welcomeSubtitle">
+              Typora Explore 希望能帮助您更高效的管理您的 Markdown 文档资源。
+            </p>
+          </div>
 
-        <div className="welcomeActions">
-          <button
-            type="button"
-            className="welcomeActionBtn welcomeActionBtnPrimary"
-            onClick={onOpenProject}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-            </svg>
-            打开已有项目
-          </button>
-          <button
-            type="button"
-            className="welcomeActionBtn welcomeActionBtnSecondary"
-            onClick={onCreateProject}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            新建项目
-          </button>
-        </div>
+          <div className="welcomeActions">
+            <button
+              type="button"
+              className="welcomeActionBtn welcomeActionBtnPrimary"
+              onClick={onOpenProject}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+              </svg>
+              打开已有项目
+            </button>
+            <button
+              type="button"
+              className="welcomeActionBtn welcomeActionBtnSecondary"
+              onClick={onCreateProject}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              新建项目
+            </button>
+          </div>
 
-        <div className="welcomeGuide">
-          <div className="welcomeGuideSection">
-            <h2>快速入门</h2>
-            <div className="welcomeGuideCards">
-              <div className="welcomeGuideCard">
-                <div className="welcomeGuideCardIcon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-                  </svg>
+          <div className="welcomeGuide">
+            <div className="welcomeGuideSection">
+              <div className="welcomeGuideCards">
+                <div className="welcomeGuideCard">
+                  <div className="welcomeGuideCardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                    </svg>
+                  </div>
+                  <div className="welcomeGuideCardContent">
+                    <h3>项目管理</h3>
+                    <p>导入本地 Markdown 项目或创建新项目，自定义项目图标</p>
+                  </div>
                 </div>
-                <div className="welcomeGuideCardContent">
-                  <h3>项目管理</h3>
-                  <p>导入本地 Markdown 项目或创建新项目，自定义项目图标</p>
+                <div className="welcomeGuideCard">
+                  <div className="welcomeGuideCardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="8" y1="6" x2="21" y2="6"/>
+                      <line x1="8" y1="12" x2="21" y2="12"/>
+                      <line x1="8" y1="18" x2="21" y2="18"/>
+                      <line x1="3" y1="6" x2="3.01" y2="6"/>
+                      <line x1="3" y1="12" x2="3.01" y2="12"/>
+                      <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                  </div>
+                  <div className="welcomeGuideCardContent">
+                    <h3>文件树管理</h3>
+                    <p>自由排序文件和文件夹，设置备注与颜色标记</p>
+                  </div>
                 </div>
-              </div>
-              <div className="welcomeGuideCard">
-                <div className="welcomeGuideCardIcon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="8" y1="6" x2="21" y2="6"/>
-                    <line x1="8" y1="12" x2="21" y2="12"/>
-                    <line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/>
-                    <line x1="3" y1="12" x2="3.01" y2="12"/>
-                    <line x1="3" y1="18" x2="3.01" y2="18"/>
-                  </svg>
-                </div>
-                <div className="welcomeGuideCardContent">
-                  <h3>文件树管理</h3>
-                  <p>自由排序文件和文件夹，设置备注与颜色标记</p>
-                </div>
-              </div>
-              <div className="welcomeGuideCard">
-                <div className="welcomeGuideCardIcon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </div>
-                <div className="welcomeGuideCardContent">
-                  <h3>编辑与预览</h3>
-                  <p>使用 CodeMirror 编辑，支持实时预览</p>
+                <div className="welcomeGuideCard">
+                  <div className="welcomeGuideCardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </div>
+                  <div className="welcomeGuideCardContent">
+                    <h3>编辑与预览</h3>
+                    <p>使用 CodeMirror 编辑，支持实时预览</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="welcomeTip">
-            <strong>温馨提示：</strong> 我们建议您使用 Typora 等专业编辑器来编辑 Markdown 文件，Typora Explore 主要用于管理您的 Markdown 文档资源。
+            <div className="welcomeTip">
+              <strong>温馨提示：</strong> 我们建议您使用 Typora 等专业编辑器来编辑 Markdown 文件，Typora Explore 主要用于管理您的 Markdown 文档资源。
+            </div>
           </div>
         </div>
 
